@@ -56,7 +56,6 @@ os.rename(old_file_path, new_file_path)
 
 logging.info("File rename complete!")
 
-print(new_file_path)
 # Transfer the file to another PC using rsync
 try:
     # Construct the rsync command
@@ -66,6 +65,10 @@ try:
     subprocess.run(rsync_command, shell=True, check=True)
 
     logging.info(f"File transfer complete! Transferred to: {REMOTE_USER}@{REMOTE_HOST}:{REMOTE_DIR}")
+
+    # Delete the CBZ file from the main PC after successful transfer
+    os.remove(new_file_path)
+    logging.info(f"CBZ file deleted from host: {new_file_path}")
 
 except subprocess.CalledProcessError as e:
     logging.error(f"File transfer failed: {str(e)}")
