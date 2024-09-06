@@ -24,8 +24,6 @@ REMOTE_HOST = os.getenv('REMOTE_HOST')
 REMOTE_USER = os.getenv('REMOTE_USER')
 REMOTE_DIR = os.getenv('REMOTE_DIR')
 
-DOWNLOAD_DIR = os.path.join(DOWNLOAD_DIR, MANGA_NAME)
-
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -37,7 +35,10 @@ subprocess.run(command, shell=True, check=True)
 
 logging.info("Download complete! (hopefully)")
 
-# Find the cb file for renaming
+# Reassigning download directory variable because mloader will make a new folder to save the cbz into
+DOWNLOAD_DIR = os.path.join(DOWNLOAD_DIR, MANGA_NAME)
+
+# Find the cbz file for renaming
 cbz_files = [f for f in os.listdir(DOWNLOAD_DIR) if f.endswith(".cbz")]
 
 if not cbz_files:
