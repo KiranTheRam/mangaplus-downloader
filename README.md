@@ -43,3 +43,9 @@ When running the script you must pass the env file as an argument like so
 ```
 python main.py --env something.env
 ```
+## Schedule cron job
+Automate this script using a cron job. Make sure to specify the path to the python in the venv (not the global package), as well as the script and env file. 
+Here is an example for Dandadan that runs every Sunday at 11:10am
+```
+10 11 * * 0 /home/user/python_projects/mangaplus-downloader/venv/bin/python3 /home/user/python_projects/mangaplus-downloader/main.py --env /home/user/python_projects/mangaplus-downloader/Dandadan.env
+```
