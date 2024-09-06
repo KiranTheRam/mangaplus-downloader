@@ -60,7 +60,7 @@ print(new_file_path)
 # Transfer the file to another PC using rsync
 try:
     # Construct the rsync command
-    rsync_command = f"rsync -avz --progress {new_file_path} {REMOTE_USER}@{REMOTE_HOST}:{REMOTE_DIR}"
+    rsync_command = f"rsync -avz --progress \"{new_file_path}\" {REMOTE_USER}@{REMOTE_HOST}:{REMOTE_DIR}"
 
     # Execute the rsync command
     subprocess.run(rsync_command, shell=True, check=True)
