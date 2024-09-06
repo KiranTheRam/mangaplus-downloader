@@ -1,5 +1,10 @@
 # mangaplus-downloader
 Python script to download the latest chapter of a specified manga from Manga Plus. Automation is done by setting script on a cron job.
+What the sscript does:
+1. Download the latest chapter of a manga on Manga Plus
+2. Rename the file to match normal convention
+3. Rsync the file to remote server where all other manag is stored
+4. Delete file from host machine
 
 ## Virtual environment creation (if you don't already know) 
 1. Install python3-full
