@@ -30,7 +30,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 logging.info(f"Downloading the latest chapter for {MANGA_NAME} (Title ID: {MANGA_ID})")
 
 # Download the latest chapter of the manga using mloader command
-command = f"mloader -t {MANGA_ID} -l -o {DOWNLOAD_DIR}"
+command = f"venv/bin/mloader -t {MANGA_ID} -l -o {DOWNLOAD_DIR}"
 subprocess.run(command, shell=True, check=True)
 
 logging.info("Download complete! (hopefully)")
