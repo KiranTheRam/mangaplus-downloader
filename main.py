@@ -91,7 +91,7 @@ try:
         subprocess.run(rsync_command, shell=True, check=True)
 
         logging.info(f"File transfer complete! Transferred to: {REMOTE_USER}@{REMOTE_HOST}:{REMOTE_DIR}")
-        send_discord_message(f"File transfer complete! {new_file_name} transferred to {REMOTE_USER}@{REMOTE_HOST}")
+        send_discord_message(f"File transfer complete! {new_file_name} transferred to server")
 
         # Delete the CBZ file from the main PC after successful transfer
         os.remove(new_file_path)
