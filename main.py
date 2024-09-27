@@ -3,6 +3,7 @@ import logging
 import subprocess
 import argparse
 from dotenv import load_dotenv
+from datetime import datetime
 
 # Create an argument parser
 parser = argparse.ArgumentParser(description='Run script with different env files')
@@ -24,13 +25,28 @@ REMOTE_HOST = os.getenv('REMOTE_HOST')
 REMOTE_USER = os.getenv('REMOTE_USER')
 REMOTE_DIR = os.getenv('REMOTE_DIR')
 
-# Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+now = datetime.now()
+
+# dd/mm/YY H:M:S
+dt_string = now.strftime("%d-%m-%Y")
+
+log_file = f"{MANGA_NAME}-{dt_string}.txt"
+
+# Configure logging to a file
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler(log_file),
+        logging.StreamHandler()
+    ]
+)
 
 logging.info(f"Downloading the latest chapter for {MANGA_NAME} (Title ID: {MANGA_ID})")
 
 # Download the latest chapter of the manga using mloader command
 command = f"venv/bin/mloader -t {MANGA_ID} -l -o {DOWNLOAD_DIR}"
+#command = f"mloader -t {MANGA_ID} -l -o {DOWNLOAD_DIR}"
 subprocess.run(command, shell=True, check=True)
 
 logging.info("Download complete! (hopefully)")
