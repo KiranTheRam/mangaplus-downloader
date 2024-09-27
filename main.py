@@ -61,8 +61,7 @@ try:
     command = f"venv/bin/mloader -t {MANGA_ID} -l -o {DOWNLOAD_DIR}"
     subprocess.run(command, shell=True, check=True)
 
-    logging.info("Download complete!")
-    send_discord_message(f"Successfully downloaded the latest chapter of {MANGA_NAME}!")
+    logging.info(f"Successfully downloaded the latest chapter of {MANGA_NAME}!")
 
     # Reassigning download directory variable because mloader will make a new folder to save the cbz into
     DOWNLOAD_DIR = os.path.join(DOWNLOAD_DIR, MANGA_NAME)
@@ -84,8 +83,7 @@ try:
     new_file_path = os.path.join(DOWNLOAD_DIR, new_file_name)
     os.rename(old_file_path, new_file_path)
 
-    logging.info("File rename complete!")
-    send_discord_message(f"Renamed file to {new_file_name} for {MANGA_NAME}!")
+    logging.info(f"Renamed file to {new_file_name} for {MANGA_NAME}!")
 
     # Transfer the file to another PC using rsync
     try:
@@ -100,7 +98,7 @@ try:
         logging.info(f"CBZ file deleted from host: {new_file_path}")
 
     except subprocess.CalledProcessError as e:
-        logging.error(f"File transfer failed: {str(e)}")
+        logging.error(f"File transfer failed for {MANGA_NAME}: {str(e)}")
         send_discord_message(f"File transfer failed for {MANGA_NAME}: {str(e)}")
 
 except subprocess.CalledProcessError as e:
