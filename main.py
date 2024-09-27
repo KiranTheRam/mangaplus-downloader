@@ -2,6 +2,7 @@ import os
 import logging
 import subprocess
 import argparse
+import requests
 from dotenv import load_dotenv
 from datetime import datetime
 
@@ -15,15 +16,18 @@ args = parser.parse_args()
 # Load the environment variables from the specified file
 load_dotenv(dotenv_path=args.env)
 
-# Get the values from environment variables
+# Get the values for mloader
 DOWNLOAD_DIR = os.getenv('DOWNLOAD_DIR')
-MANGA_NAME=os.getenv('MANGA_NAME')
-MANGA_ID=os.getenv('MANGA_ID')
+MANGA_NAME = os.getenv('MANGA_NAME')
+MANGA_ID = os.getenv('MANGA_ID')
 
-# Transfer the file to another PC using rsync
+# Get values for transferring file to another PC using rsync
 REMOTE_HOST = os.getenv('REMOTE_HOST')
 REMOTE_USER = os.getenv('REMOTE_USER')
 REMOTE_DIR = os.getenv('REMOTE_DIR')
+
+# Get values for discord webhook
+DISCORD_WEBHOOK_URL = os.getenv('DISCORD_WEBHOOK_URL')
 
 now = datetime.now()
 
@@ -42,49 +46,61 @@ logging.basicConfig(
     ]
 )
 
-logging.info(f"Downloading the latest chapter for {MANGA_NAME} (Title ID: {MANGA_ID})")
 
-# Download the latest chapter of the manga using mloader command
-command = f"venv/bin/mloader -t {MANGA_ID} -l -o {DOWNLOAD_DIR}"
-#command = f"mloader -t {MANGA_ID} -l -o {DOWNLOAD_DIR}"
-subprocess.run(command, shell=True, check=True)
+def send_discord_message(content):
+    data = {"content": content}
+    response = requests.post(DISCORD_WEBHOOK_URL, json=data)
+    if response.status_code != 204:
+        logging.error(f"Failed to send message to Discord: {response.status_code}, {response.text}")
 
-logging.info("Download complete! (hopefully)")
 
-# Reassigning download directory variable because mloader will make a new folder to save the cbz into
-DOWNLOAD_DIR = os.path.join(DOWNLOAD_DIR, MANGA_NAME)
-
-# Find the cbz file for renaming
-cbz_files = [f for f in os.listdir(DOWNLOAD_DIR) if f.endswith(".cbz")]
-
-if not cbz_files:
-    logging.warning(f"No CBZ file found for {MANGA_NAME} (Title ID: {MANGA_ID})")
-    exit(69)
-
-latest_cbz = max(cbz_files)
-chapter_number = latest_cbz.split(" - ")[1].split(" ")[0].lstrip("c")
-
-# renaming cbz to match the syntax "{MANGA_NAME} ch. {chapter_number}.cbz"
-old_file_path = os.path.join(DOWNLOAD_DIR, latest_cbz)
-new_file_name = f"{MANGA_NAME} ch. {chapter_number}.cbz"
-new_file_path = os.path.join(DOWNLOAD_DIR, new_file_name)
-os.rename(old_file_path, new_file_path)
-
-logging.info("File rename complete!")
-
-# Transfer the file to another PC using rsync
 try:
-    # Construct the rsync command
-    rsync_command = f"rsync -avz --progress \"{new_file_path}\" {REMOTE_USER}@{REMOTE_HOST}:{REMOTE_DIR}"
+    logging.info(f"Downloading the latest chapter for {MANGA_NAME} (Title ID: {MANGA_ID})")
 
-    # Execute the rsync command
-    subprocess.run(rsync_command, shell=True, check=True)
+    # Download the latest chapter of the manga using mloader command
+    command = f"venv/bin/mloader -t {MANGA_ID} -l -o {DOWNLOAD_DIR}"
+    subprocess.run(command, shell=True, check=True)
 
-    logging.info(f"File transfer complete! Transferred to: {REMOTE_USER}@{REMOTE_HOST}:{REMOTE_DIR}")
+    logging.info(f"Successfully downloaded the latest chapter of {MANGA_NAME}!")
 
-    # Delete the CBZ file from the main PC after successful transfer
-    os.remove(new_file_path)
-    logging.info(f"CBZ file deleted from host: {new_file_path}")
+    # Reassigning download directory variable because mloader will make a new folder to save the cbz into
+    DOWNLOAD_DIR = os.path.join(DOWNLOAD_DIR, MANGA_NAME)
+
+    # Find the cbz file for renaming
+    cbz_files = [f for f in os.listdir(DOWNLOAD_DIR) if f.endswith(".cbz")]
+
+    if not cbz_files:
+        logging.warning(f"No CBZ file found for {MANGA_NAME} (Title ID: {MANGA_ID})")
+        send_discord_message(f"No CBZ file found for {MANGA_NAME} (Title ID: {MANGA_ID})")
+        exit(69)
+
+    latest_cbz = max(cbz_files)
+    chapter_number = latest_cbz.split(" - ")[1].split(" ")[0].lstrip("c")
+
+    # Renaming cbz to match the syntax "{MANGA_NAME} ch. {chapter_number}.cbz"
+    old_file_path = os.path.join(DOWNLOAD_DIR, latest_cbz)
+    new_file_name = f"{MANGA_NAME} ch. {chapter_number}.cbz"
+    new_file_path = os.path.join(DOWNLOAD_DIR, new_file_name)
+    os.rename(old_file_path, new_file_path)
+
+    logging.info(f"Renamed file to {new_file_name} for {MANGA_NAME}!")
+
+    # Transfer the file to another PC using rsync
+    try:
+        rsync_command = f"rsync -avz --progress \"{new_file_path}\" {REMOTE_USER}@{REMOTE_HOST}:{REMOTE_DIR}"
+        subprocess.run(rsync_command, shell=True, check=True)
+
+        logging.info(f"File transfer complete! Transferred to: {REMOTE_USER}@{REMOTE_HOST}:{REMOTE_DIR}")
+        send_discord_message(f"File transfer complete! {new_file_name} transferred to server")
+
+        # Delete the CBZ file from the main PC after successful transfer
+        os.remove(new_file_path)
+        logging.info(f"CBZ file deleted from host: {new_file_path}")
+
+    except subprocess.CalledProcessError as e:
+        logging.error(f"File transfer failed for {MANGA_NAME}: {str(e)}")
+        send_discord_message(f"File transfer failed for {MANGA_NAME}: {str(e)}")
 
 except subprocess.CalledProcessError as e:
-    logging.error(f"File transfer failed: {str(e)}")
+    logging.error(f"Error during download: {str(e)}")
+    send_discord_message(f"Error downloading {MANGA_NAME}: {str(e)}")
