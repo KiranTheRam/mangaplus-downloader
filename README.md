@@ -1,10 +1,11 @@
 # mangaplus-downloader
 Python script to download the latest chapter of a specified manga from Manga Plus. Automation is done by setting script on a cron job.
-What the sscript does:
+What the script does:
 1. Download the latest chapter of a manga on Manga Plus
 2. Rename the file to match normal convention
 3. Rsync the file to remote server where all other manga is stored
 4. Delete file from host machine
+5. Sends a message on Discord via webhook when the transfer is done, or if an error was encountered
 
 ## Virtual environment creation (if you don't already know) 
 1. Install python3-full
@@ -38,6 +39,7 @@ DOWNLOAD_DIR=manga_downloads
 REMOTE_HOST=
 REMOTE_USER=
 REMOTE_DIR=
+DISCORD_WEBHOOK_URL=
 ```
 When running the script you must pass the env file as an argument like so
 ```
